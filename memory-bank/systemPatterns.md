@@ -2,10 +2,10 @@
 
 ## Architecture Overview
 Broqui Bot Next follows a modern Next.js 15 architecture with App Router using server components and client components appropriately:
-- **Client-side**: UI components, form handling, interactivity
+- **Client-side**: UI components, form handling, interactivity, image handling
 - **Server-side**: Authentication, API calls, data processing
-- **Firebase**: User management, image storage
-- **OpenAI**: GPT-4 and Vision API integration
+- **Firebase**: User management, Firestore for data and image storage
+- **OpenAI**: GPT-4 and Vision API integration with food topic constraints
 
 ## Design Patterns
 - **Authentication Pattern**: Route protection with Firebase Auth
@@ -13,7 +13,8 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - **Provider Pattern**: Context providers for auth and chat state
 - **Custom Hook Pattern**: Encapsulating complex logic in reusable hooks
 - **Streaming Pattern**: For AI response streaming
-- **Repository Pattern**: For Firebase interaction
+- **Repository Pattern**: For Firebase Firestore interaction
+- **Compound Key Pattern**: Using timestamp + index for unique React keys
 
 ## Component Structure
 - **Layout Components**: Page layouts, containers
@@ -29,40 +30,42 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 
 2. **Chat Flow**:
    - User input → Client State → Server API Route → OpenAI API → Response Stream → Client Display
-   - Message history maintained in client state
+   - Messages stored in Firestore with subcollections
+   - Chat history retrieved and displayed with proper sorting
 
 3. **Image Upload Flow**:
-   - Image Selection → Client Validation → Firebase Storage → URL Generation → OpenAI Vision API → Analysis Display
+   - Image Selection → Client Validation → Base64 Encoding → Firestore Storage → OpenAI Vision API → Analysis Display
+   - Images stored directly in Firestore documents as base64 strings
 
 ## State Management
 - **Auth State**: Firebase Auth state with custom hook
-- **Chat State**: React state with Context API
+- **Chat State**: React state with Firebase synchronization
 - **UI State**: Local component state for UI elements
-- **Form State**: Form libraries for input handling
-- **Upload State**: Upload progress and status tracking
+- **Form State**: Controlled components for input handling
+- **Upload State**: Upload progress and status tracking with optimistic UI updates
 
 ## API Organization
-- **/api/chat**: OpenAI GPT interface
-- **/api/upload**: Image upload handling
+- **/api/chat**: OpenAI GPT interface with food constraint enforcement
+- **/api/upload**: Image processing and optimization (planned)
 - **/api/auth**: Authentication helpers
-- Firebase SDK for direct client-side auth
-- OpenAI SDK for server-side API calls
+- Firebase SDK for direct client-side auth and Firestore operations
+- OpenAI SDK for server-side API calls with content moderation
 
 ## Error Handling
 - Client-side form validation
-- API error boundaries
-- Graceful degradation
-- User-friendly error messages
-- Retry mechanisms for transient errors
-- Logging for debugging
+- API error boundaries with appropriate user feedback
+- Graceful degradation with fallback UI
+- User-friendly error messages for common failures
+- Retry mechanisms for network issues
+- Comprehensive error logging
 
 ## Security Model
 - Firebase Authentication for identity management
-- JWT tokens for session management
-- Server-side API key protection
-- Content validation before processing
+- Firestore security rules for data access control
+- Server-side API key protection for OpenAI calls
+- Content validation and sanitization
 - Rate limiting to prevent abuse
-- Input sanitization
+- Input validation for all user-submitted content
 
 ## Testing Strategy
 - Component testing with React Testing Library
@@ -70,11 +73,12 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - E2E testing for critical flows
 - Authentication flow testing
 - Accessibility testing
+- Image handling and storage testing
 
 ## Performance Considerations
-- Image optimization before upload
+- Image optimization before storage (planned)
 - Response streaming for faster perceived performance
 - Lazy loading of non-critical components
-- Optimistic UI updates
-- Efficient state management
-- API response caching where appropriate 
+- Optimistic UI updates for better UX
+- Efficient Firestore query patterns
+- Message batching for large history retrieval 
