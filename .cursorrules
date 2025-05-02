@@ -1,0 +1,44 @@
+# Cursor Rules for Broqui Bot Next
+
+## Project Patterns
+- Next.js 15 App Router architecture with server and client components
+- Firebase Authentication for user management
+- OpenAI API integration for chat functionality
+- Image upload and analysis capabilities
+- Food-specific AI assistant constraint pattern
+
+## Implementation Preferences
+- TypeScript for all components and functions
+- Tailwind CSS for styling with shadcn/ui component library
+- Server components by default, client components when necessary
+- React hooks for shared logic
+- Focused, single-responsibility components
+- Proper error handling throughout the application
+- Accessibility-first approach to UI development
+
+## Critical Paths
+- Authentication flow with Firebase
+- Chat messaging system with OpenAI integration
+- Image upload and processing workflow
+- Response streaming from OpenAI API
+- Topic constraint enforcement for food-only responses
+
+## Known Challenges
+- Ensuring AI responses stay on food-related topics
+- Optimizing image uploads for efficient processing
+- Managing OpenAI API costs
+- Ensuring responsive design works well on all devices
+- Firebase authentication and protected routes implementation
+
+## Evolution Notes
+- Project is in initial planning phase
+- Memory bank established to guide development
+- Implementation will proceed in phases
+
+## Tool Usage
+- Next.js 15 with App Router for routing and pages
+- Firebase for authentication and storage
+- OpenAI GPT-4 and Vision API for AI capabilities
+- Tailwind CSS and shadcn/ui for UI development
+- TypeScript for type safety
+- Vercel for deployment 
