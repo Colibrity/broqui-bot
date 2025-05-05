@@ -1,14 +1,13 @@
-import { NextResponse } from 'next/server';
-import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { NextRequest, NextResponse } from 'next/server';
+import { doc, getDoc, collection, query, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-interface Params {
-  id: string;
-}
-
-export async function GET(request: Request, { params }: { params: Params }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const chatId = params.id;
+    const { id: chatId } = await params;
     
     if (!chatId) {
       return NextResponse.json(
