@@ -18,6 +18,9 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - **Compound Key Pattern**: Using timestamp + index for unique React keys
 - **Memory Extraction Pattern**: Using AI to extract and summarize user preferences
 - **Priority Tagging Pattern**: Highlighting critical health information within memory
+- **Keyword Detection Pattern**: Scanning messages for dietary restriction keywords
+- **Async Processing Pattern**: Using setTimeout for non-blocking memory updates
+- **Referrer-Based Security Pattern**: Allowing internal API calls while blocking external access
 
 ## Component Structure
 - **Layout Components**: Page layouts, containers
@@ -36,15 +39,17 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
    - User input → Client State → Server API Route → OpenAI API → Response Stream → Client Display
    - Messages stored in Firestore with subcollections
    - Chat history retrieved and displayed with proper sorting
+   - Keyword detection for allergies → Priority memory updates
 
 3. **Image Upload Flow**:
    - Image Selection → Client Validation → Base64 Encoding → Firestore Storage → OpenAI Vision API → Analysis Display
    - Images stored directly in Firestore documents as base64 strings
 
 4. **Memory Flow**:
-   - User chat messages → OpenAI extraction → Memory summary → Firestore storage → System prompt enhancement
+   - User chat messages → Keyword detection → Priority assignment → Response processing → Async memory update → Firestore storage → System prompt enhancement
    - Memory incorporated into each chat prompt for continuity
-   - Health information prioritized in prompt formatting
+   - Health information prioritized in prompt formatting with visual highlighting
+   - Different update timing based on content criticality (100ms for allergies, 200ms for regular)
 
 ## State Management
 - **Auth State**: Firebase Auth state with custom hook
@@ -53,13 +58,15 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - **Form State**: Controlled components for input handling
 - **Upload State**: Upload progress and status tracking with optimistic UI updates
 - **Memory State**: User preference persistence with background updates
+- **Dietary Restriction State**: Detection and prioritization of health information
 
 ## API Organization
-- **/api/chat**: OpenAI GPT interface with food constraint enforcement and memory integration
-- **/api/vision**: Image analysis with OpenAI Vision and memory integration
-- **/api/memory**: Endpoints for memory management (get, update, clear)
+- **/api/chat**: OpenAI GPT interface with food constraint enforcement, memory integration, and allergy detection
+- **/api/vision**: Image analysis with OpenAI Vision, memory integration, and allergy detection
+- **/api/memory**: Endpoints for memory management (get, update, clear, aggregate)
 - **/api/upload**: Image processing and optimization (planned)
 - **/api/auth**: Authentication helpers
+- **Middleware**: Intelligent routing and security for production vs development environments
 - Firebase SDK for direct client-side auth and Firestore operations
 - OpenAI SDK for server-side API calls with content moderation
 
@@ -71,6 +78,7 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - Retry mechanisms for network issues
 - Comprehensive error logging
 - Memory extraction fallbacks for error cases
+- Non-blocking memory operations to prevent cascade failures
 
 ## Security Model
 - Firebase Authentication for identity management
@@ -80,6 +88,8 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - Rate limiting to prevent abuse
 - Input validation for all user-submitted content
 - User-specific memory isolation
+- Referrer-based API protection for internal vs external requests
+- Environment-aware middleware for production security
 
 ## Testing Strategy
 - Component testing with React Testing Library
@@ -89,6 +99,8 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - Accessibility testing
 - Image handling and storage testing
 - Memory extraction and persistence testing
+- Keyword detection validation for dietary restrictions
+- Middleware security testing for referrer validation
 
 ## Performance Considerations
 - Memory extraction batching for efficient processing
@@ -98,4 +110,6 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - Lazy loading of non-critical components
 - Optimistic UI updates for better UX
 - Efficient Firestore query patterns
-- Message batching for large history retrieval 
+- Message batching for large history retrieval
+- Asynchronous memory processing to prevent response blocking
+- Priority-based update queuing for critical vs non-critical information 

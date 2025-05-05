@@ -21,26 +21,31 @@
 - Message rendering: Fixed React key handling for stable UI
 - Error handling: Added proper error states throughout chat flow
 - Unique IDs: Implemented timestamp-based compound keys for reliable message rendering
+- Memory API access: Fixed production access issues with referrer-based middleware
+- Memory priority: Enhanced detection of dietary restrictions with keyword scanning
+- Asynchronous memory updates: Implemented non-blocking memory processing
+- Chat selection: Added chat selection for memory testing
+- Middleware optimization: Created smart filtering for internal vs external API calls
 
 ## In Progress
-- Enhancing memory extraction for more accurate user preference identification
-- Optimizing image storage to prevent hitting Firestore document size limits
-- Adding image compression functionality
-- Implementing additional loading states for improved user experience
-- Working on chat history search functionality
+- Enhancing memory extraction for more comprehensive dietary restriction detection
+- Testing production memory updates in various environments
+- Creating more robust keyword detection for allergies and intolerances
+- Implementing monitoring system for memory update success rate
 
 ## Up Next
 - Improve memory visualization and management on the memory test page
-- Add more comprehensive memory analysis algorithms
+- Add image compression functionality to reduce Firestore document size
 - Implement user profile management
 - Add advanced history features (search, filtering, categorization)
 - Create chat export functionality
 - Implement message editing and deletion
 - Add chat sharing capabilities
+- Implement pagination for chat history
 
 ## Known Issues
-- Memory extraction sometimes misses important information from large conversations
-- Memory updates can be delayed in some edge cases
+- Memory extraction sometimes misses nuanced or implied health information
+- Memory updates may not be processed if the user navigates away quickly after sending a message
 - Large images cause Firestore document size limits to be exceeded
 - No image compression before storage causes unnecessarily large data usage
 - Loading states missing in some parts of the application
@@ -69,6 +74,11 @@
 - ✅ Setup image upload handling
 - ✅ Fix React rendering issues
 - ✅ Implement proper error handling
+- ✅ Fix memory API access in production environments
+- ✅ Implement keyword detection for dietary restrictions
+- ✅ Create asynchronous memory update system
+- ✅ Configure smart middleware for API security
+- ✅ Implement priority-based memory processing
 - Improve memory extraction accuracy
 - Implement image compression
 - Add pagination for chat history
@@ -83,10 +93,14 @@
 - Image upload and handling tested
 - Chat history retrieval and display tested
 - Error handling scenarios validated
+- Memory API access in production initially tested
+- Keyword detection for health information validated
 
 ## Performance Metrics
 - Memory extraction: Good for concise conversations, needs optimization for lengthy chats
 - Memory storage and retrieval: Excellent
+- Memory updating in production: Good with new middleware approach
+- Memory keyword detection: Very good for explicit mentions, needs work for implicit references
 - Initial loading time: Good
 - Message sending/receiving: Good
 - Image handling: Needs optimization
