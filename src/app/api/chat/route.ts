@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { openai, SYSTEM_PROMPT } from '@/lib/gpt';
-import { getUserMemory, refreshUserMemory } from '@/lib/memoryService';
+import { getUserMemory, forceFullMemoryUpdate } from '@/lib/memoryService';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export async function POST(request: Request) {
   try {
-    const { messages, userId } = await request.json();
+    const { messages, userId, chatId } = await request.json();
 
     // Validate messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -15,6 +17,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check for allergies in the latest message
+    const latestMessage = messages[messages.length - 1];
+    const containsAllergies = latestMessage.role === 'user' && 
+      (latestMessage.content.toLowerCase().includes('allerg') || 
+       latestMessage.content.toLowerCase().includes('intoleran') ||
+       latestMessage.content.toLowerCase().includes('cannot eat') ||
+       latestMessage.content.toLowerCase().includes('can\'t eat'));
+    
     // Prepare system message with memory if available
     let systemMessage = SYSTEM_PROMPT;
     
@@ -30,11 +40,6 @@ export async function POST(request: Request) {
         // Append user memory to system prompt
         systemMessage = `${SYSTEM_PROMPT}${allergyInfo}`;
       }
-      
-      // Schedule memory refresh in the background (don't await)
-      refreshUserMemory(userId).catch(error => {
-        console.error('Background memory refresh failed:', error);
-      });
     }
 
     // Prepare messages for OpenAI API
@@ -54,6 +59,30 @@ export async function POST(request: Request) {
       temperature: 0.7,
       max_tokens: 500,
     });
+
+    // If this message contains allergies, prioritize a memory update immediately after response
+    if (containsAllergies && userId) {
+      // Schedule memory update after response completes (don't block the response)
+      setTimeout(async () => {
+        try {
+          console.log('Detected allergy information, triggering full memory update');
+          const result = await forceFullMemoryUpdate(userId);
+          console.log('Memory update after allergy detection:', result);
+        } catch (error) {
+          console.error('Failed to update memory after allergy detection:', error);
+        }
+      }, 100);
+    } else if (userId) {
+      // For regular messages, still refresh memory but with less priority
+      setTimeout(async () => {
+        try {
+          console.log('Regular chat update, refreshing memory');
+          await forceFullMemoryUpdate(userId);
+        } catch (error) {
+          console.error('Background memory refresh failed:', error);
+        }
+      }, 200);
+    }
 
     // Transform the response to a ReadableStream
     const encoder = new TextEncoder();

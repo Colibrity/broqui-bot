@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { openai, SYSTEM_PROMPT } from '@/lib/gpt';
-import { getUserMemory, refreshUserMemory } from '@/lib/memoryService';
+import { getUserMemory, forceFullMemoryUpdate } from '@/lib/memoryService';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 export async function POST(request: Request) {
@@ -15,6 +15,13 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Check for allergies in the text prompt
+    const containsAllergies = userPrompt && 
+      (userPrompt.toLowerCase().includes('allerg') || 
+       userPrompt.toLowerCase().includes('intoleran') ||
+       userPrompt.toLowerCase().includes('cannot eat') ||
+       userPrompt.toLowerCase().includes('can\'t eat'));
 
     // Prepare system message with memory if available
     let systemMessage = SYSTEM_PROMPT;
@@ -31,11 +38,6 @@ export async function POST(request: Request) {
         // Append user memory to system prompt
         systemMessage = `${SYSTEM_PROMPT}${allergyInfo}`;
       }
-      
-      // Schedule memory refresh in the background (don't await)
-      refreshUserMemory(userId).catch(error => {
-        console.error('Background memory refresh failed:', error);
-      });
     }
 
     // Prepare messages for OpenAI API with the image
@@ -59,41 +61,41 @@ export async function POST(request: Request) {
       }
     ];
 
-    // Create stream from OpenAI API
+    // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4-vision-preview',
       messages: messages,
-      max_tokens: 800,
+      max_tokens: 1000,
       temperature: 0.7,
-      stream: true,
     });
 
-    // Transform the response to a ReadableStream
-    const encoder = new TextEncoder();
-    
-    const stream = new ReadableStream({
-      async start(controller) {
-        // Process each chunk from the OpenAI stream
-        for await (const chunk of response) {
-          const content = chunk.choices[0]?.delta?.content || '';
-          if (content) {
-            controller.enqueue(encoder.encode(content));
+    // If this request contains allergies, prioritize a memory update immediately
+    if (userId) {
+      // Use setTimeout to not block the response
+      setTimeout(async () => {
+        try {
+          if (containsAllergies) {
+            console.log('Detected allergy information in vision request, triggering full memory update');
+            const result = await forceFullMemoryUpdate(userId);
+            console.log('Memory update after allergy detection:', result);
+          } else {
+            console.log('Regular vision update, refreshing memory');
+            await forceFullMemoryUpdate(userId);
           }
+        } catch (error) {
+          console.error('Failed to update memory after vision request:', error);
         }
-        controller.close();
-      },
-    });
+      }, 100);
+    }
 
-    // Return streaming response
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-      },
+    // Return the API response
+    return NextResponse.json({
+      content: response.choices[0].message.content
     });
   } catch (error: any) {
     console.error('Vision API error:', error);
     return NextResponse.json(
-      { error: error.message || 'An error occurred processing the image' },
+      { error: error.message || 'An error occurred during the vision request' },
       { status: 500 }
     );
   }

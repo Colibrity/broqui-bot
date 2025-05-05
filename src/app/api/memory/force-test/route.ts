@@ -4,14 +4,6 @@ import { collection, doc, addDoc, serverTimestamp, getDoc } from 'firebase/fires
 import { forceFullMemoryUpdate, getUserMemory } from '@/lib/memoryService';
 
 export async function POST(request: Request) {
-  // Block in production
-  if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json(
-      { error: 'This endpoint is not available in production' },
-      { status: 403 }
-    );
-  }
-
   try {
     // Get the userId and optional allergyInfo from the request
     const { userId, chatId, allergyInfo = "I have severe allergies to peanuts and shellfish. Please remember this important health information." } = await request.json();
