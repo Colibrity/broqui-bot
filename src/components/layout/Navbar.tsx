@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User, History } from "lucide-react";
+import { LogOut, User, History, Brain } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -43,6 +43,16 @@ export default function Navbar() {
                 }`}>
                 <History className="h-4 w-4 mr-1 inline-block" />
                 History
+              </Link>
+              <Link
+                href="/memory-test"
+                className={`text-sm ${
+                  pathname === "/memory-test"
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}>
+                <Brain className="h-4 w-4 mr-1 inline-block" />
+                Memory Test
               </Link>
               <Link
                 href="/profile"

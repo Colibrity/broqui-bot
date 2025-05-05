@@ -229,6 +229,7 @@ export default function ChatPage() {
               image: messageImages[0].url,
               textPrompt: messageContent,
               messages: messages,
+              userId: user?.uid,
             }),
           });
 
@@ -277,6 +278,7 @@ export default function ChatPage() {
             },
             body: JSON.stringify({
               messages: [...messages, userMessage],
+              userId: user?.uid,
             }),
           });
 

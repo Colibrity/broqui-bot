@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { openai, SYSTEM_PROMPT } from '@/lib/gpt';
+import { getUserMemory, refreshUserMemory } from '@/lib/memoryService';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 export async function POST(request: Request) {
   try {
-    const { image, messages, textPrompt } = await request.json();
+    const { image, messages, textPrompt, userId } = await request.json();
 
     // Validate input
     if (!image) {
@@ -32,6 +33,28 @@ export async function POST(request: Request) {
       `${foodAnalysisPrompt}\n\nUser's question: ${textPrompt}` : 
       foodAnalysisPrompt;
 
+    // Prepare system message with memory if available
+    let systemContent = SYSTEM_PROMPT;
+    
+    if (userId) {
+      const userMemory = await getUserMemory(userId);
+      
+      if (userMemory?.summary) {
+        // Проверяем, содержит ли память информацию об аллергии
+        const allergyInfo = userMemory.summary.includes('allerg') 
+          ? `\n\n⚠️ IMPORTANT HEALTH INFORMATION ⚠️\n${userMemory.summary}`
+          : `\n\nUSER MEMORY:\n${userMemory.summary}`;
+        
+        // Append user memory to system prompt
+        systemContent = `${SYSTEM_PROMPT}${allergyInfo}`;
+      }
+      
+      // Schedule memory refresh in the background (don't await)
+      refreshUserMemory(userId).catch(error => {
+        console.error('Background memory refresh failed:', error);
+      });
+    }
+
     // Build messages array with the image
     const userMessage: ChatCompletionMessageParam = {
       role: 'user',
@@ -43,7 +66,7 @@ export async function POST(request: Request) {
     
     const systemMessage: ChatCompletionMessageParam = {
       role: 'system',
-      content: SYSTEM_PROMPT
+      content: systemContent
     };
     
     // Prepare messages for OpenAI API

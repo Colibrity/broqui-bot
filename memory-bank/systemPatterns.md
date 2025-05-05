@@ -6,6 +6,7 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - **Server-side**: Authentication, API calls, data processing
 - **Firebase**: User management, Firestore for data and image storage
 - **OpenAI**: GPT-4 and Vision API integration with food topic constraints
+- **Memory System**: User preference persistence with priority for health information
 
 ## Design Patterns
 - **Authentication Pattern**: Route protection with Firebase Auth
@@ -15,13 +16,16 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - **Streaming Pattern**: For AI response streaming
 - **Repository Pattern**: For Firebase Firestore interaction
 - **Compound Key Pattern**: Using timestamp + index for unique React keys
+- **Memory Extraction Pattern**: Using AI to extract and summarize user preferences
+- **Priority Tagging Pattern**: Highlighting critical health information within memory
 
 ## Component Structure
 - **Layout Components**: Page layouts, containers
-- **Feature Components**: Auth forms, Chat interface
+- **Feature Components**: Auth forms, Chat interface, Memory management
 - **UI Components**: Buttons, inputs, cards from shadcn/ui
 - **Composite Components**: Combining UI components for specific features
 - **HOCs**: For route protection and auth requirements
+- **Memory Components**: For visualizing and managing user memory
 
 ## Data Flow
 1. **Authentication Flow**:
@@ -37,15 +41,23 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
    - Image Selection → Client Validation → Base64 Encoding → Firestore Storage → OpenAI Vision API → Analysis Display
    - Images stored directly in Firestore documents as base64 strings
 
+4. **Memory Flow**:
+   - User chat messages → OpenAI extraction → Memory summary → Firestore storage → System prompt enhancement
+   - Memory incorporated into each chat prompt for continuity
+   - Health information prioritized in prompt formatting
+
 ## State Management
 - **Auth State**: Firebase Auth state with custom hook
 - **Chat State**: React state with Firebase synchronization
 - **UI State**: Local component state for UI elements
 - **Form State**: Controlled components for input handling
 - **Upload State**: Upload progress and status tracking with optimistic UI updates
+- **Memory State**: User preference persistence with background updates
 
 ## API Organization
-- **/api/chat**: OpenAI GPT interface with food constraint enforcement
+- **/api/chat**: OpenAI GPT interface with food constraint enforcement and memory integration
+- **/api/vision**: Image analysis with OpenAI Vision and memory integration
+- **/api/memory**: Endpoints for memory management (get, update, clear)
 - **/api/upload**: Image processing and optimization (planned)
 - **/api/auth**: Authentication helpers
 - Firebase SDK for direct client-side auth and Firestore operations
@@ -58,6 +70,7 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - User-friendly error messages for common failures
 - Retry mechanisms for network issues
 - Comprehensive error logging
+- Memory extraction fallbacks for error cases
 
 ## Security Model
 - Firebase Authentication for identity management
@@ -66,6 +79,7 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - Content validation and sanitization
 - Rate limiting to prevent abuse
 - Input validation for all user-submitted content
+- User-specific memory isolation
 
 ## Testing Strategy
 - Component testing with React Testing Library
@@ -74,8 +88,11 @@ Broqui Bot Next follows a modern Next.js 15 architecture with App Router using s
 - Authentication flow testing
 - Accessibility testing
 - Image handling and storage testing
+- Memory extraction and persistence testing
 
 ## Performance Considerations
+- Memory extraction batching for efficient processing
+- Memory size constraints to avoid prompts bloat
 - Image optimization before storage (planned)
 - Response streaming for faster perceived performance
 - Lazy loading of non-critical components
