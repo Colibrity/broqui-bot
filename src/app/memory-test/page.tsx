@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,104 +31,130 @@ interface Chat {
 
 export default function MemoryTestPage() {
   const { user } = useAuth();
-  const router = useRouter();
+  const [memory, setMemory] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
-  const [memory, setMemory] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [memoryClearLoading, setMemoryClearLoading] = useState(false);
-  const [memoryTestLoading, setMemoryTestLoading] = useState(false);
+  const router = useRouter();
 
-  // Redirect if not logged in
+  // Fetch current memory and chats on page load
   useEffect(() => {
-    if (!user) {
-      router.push("/auth/login");
-    }
-  }, [user, router]);
-
-  // Fetch chats
-  const fetchChats = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const response = await fetch(`/api/chats?userId=${user.uid}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setChats(data.chats);
-      } else {
-        toast.error(data.error || "Failed to fetch chats");
-      }
-    } catch (error) {
-      console.error("Error fetching chats:", error);
-      toast.error("An error occurred while fetching chats");
+    if (user) {
+      fetchMemory();
+      fetchChats();
     }
   }, [user]);
 
-  // Fetch memory
-  const fetchMemory = useCallback(async () => {
+  // Fetch user chats
+  const fetchChats = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
+      const response = await fetch(`/api/chats?userId=${user.uid}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setChats(data.chats || []);
+        if (data.chats?.length > 0 && !selectedChat) {
+          setSelectedChat(data.chats[0].id);
+        }
+        if (data.chats?.length === 0) {
+          toast.info(
+            "No chats found. This may be normal if you haven't chatted with the bot yet or if memory was created through a forced update."
+          );
+        }
+      } else {
+        console.error("Failed to fetch chats:", data.error);
+        toast.error(`Error fetching chats: ${data.error}`);
+        setTestResult(`Error fetching chats: ${data.error}`);
+      }
+    } catch (error: any) {
+      console.error("Error fetching chats:", error);
+      toast.error(`Error: ${error.message || "Unknown error"}`);
+      setTestResult(
+        `Error fetching chats: ${error.message || "Unknown error"}`
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Navigate to chat page
+  const navigateToChat = (chatId: string) => {
+    router.push(`/chat?id=${chatId}`);
+  };
+
+  // Fetch current memory
+  const fetchMemory = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
       const response = await fetch(`/api/memory/get?userId=${user.uid}`);
       const data = await response.json();
 
       if (data.success) {
         setMemory(data.memory);
-        setLastUpdated(data.lastUpdated);
       } else {
-        toast.error(data.error || "Failed to fetch memory");
+        setMemory(null);
+        console.error("Failed to fetch memory:", data.error);
       }
     } catch (error) {
       console.error("Error fetching memory:", error);
-      toast.error("An error occurred while fetching memory");
+      toast.error("Failed to fetch memory");
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  };
 
-  // Clear memory
-  const clearMemory = useCallback(async () => {
+  // Force memory update
+  const updateMemory = async () => {
     if (!user) return;
 
+    setLoading(true);
     try {
-      setMemoryClearLoading(true);
-      const response = await fetch("/api/memory/clear", {
+      const response = await fetch("/api/memory/update", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId: user.uid }),
+        body: JSON.stringify({
+          userId: user.uid,
+        }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Memory cleared successfully");
-        setMemory(null);
-        setLastUpdated(null);
+        setMemory(data.memory);
+        toast.success("Memory updated successfully");
       } else {
-        toast.error(data.error || "Failed to clear memory");
+        setTestResult(data.message);
+        toast.error(data.message || "Failed to update memory");
       }
     } catch (error) {
-      console.error("Error clearing memory:", error);
-      toast.error("An error occurred while clearing memory");
+      console.error("Error updating memory:", error);
+      toast.error("Failed to update memory");
     } finally {
-      setMemoryClearLoading(false);
+      setLoading(false);
     }
-  }, [user]);
+  };
 
-  // Force memory test - add test allergy data
-  const forceMemoryTest = useCallback(async () => {
-    if (!user || !selectedChat) {
+  // Add test message with allergies
+  const addTestAllergy = async () => {
+    if (!user) return;
+
+    if (!selectedChat) {
       toast.error("Please select a chat first");
+      setTestResult("Error: Please select a chat first");
       return;
     }
 
+    setLoading(true);
     try {
-      setMemoryTestLoading(true);
+      // We use a special API to create a test message and update memory
       const response = await fetch("/api/memory/force-test", {
         method: "POST",
         headers: {
@@ -136,141 +163,187 @@ export default function MemoryTestPage() {
         body: JSON.stringify({
           userId: user.uid,
           chatId: selectedChat,
+          allergyInfo:
+            "I have severe allergies to peanuts and shellfish. Please remember this important health information.",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create test data");
+      }
+
+      const data = await response.json();
+
+      // Update memory on the page
+      if (data.success) {
+        setMemory(data.memory);
+        setTestResult(
+          `Test completed: ${data.message}. Memory has been updated.`
+        );
+        toast.success("Test completed successfully");
+
+        // Update chat list
+        await fetchChats();
+      } else {
+        setTestResult(`Test failed: ${data.error || "Unknown error"}`);
+        toast.error("Test failed");
+      }
+    } catch (error) {
+      console.error("Error in allergy test:", error);
+      toast.error("Test failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Clear user memory
+  const clearMemory = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch("/api/memory/clear", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.uid,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Test allergy information added to memory");
-        fetchMemory();
+        setMemory(null);
+        setTestResult(`Memory cleared: ${data.message}`);
+        toast.success("User memory successfully cleared");
       } else {
-        toast.error(data.error || "Failed to add test allergy information");
+        setTestResult(
+          `Error clearing memory: ${data.error || "Unknown error"}`
+        );
+        toast.error(data.error || "Error clearing memory");
       }
-    } catch (error) {
-      console.error("Error adding test allergy info:", error);
-      toast.error("An error occurred while adding test data");
+    } catch (error: any) {
+      console.error("Error clearing memory:", error);
+      toast.error("Error clearing memory");
     } finally {
-      setMemoryTestLoading(false);
+      setLoading(false);
     }
-  }, [user, selectedChat, fetchMemory]);
-
-  // Initial data load
-  useEffect(() => {
-    if (user) {
-      fetchChats();
-      fetchMemory();
-    }
-  }, [user, fetchChats, fetchMemory]);
+  };
 
   if (!user) {
-    return null;
-  }
-
-  return (
-    <div className="container max-w-5xl px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Memory Testing</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Chat selection */}
-        <Card className="md:col-span-1">
+    return (
+      <div className="container max-w-3xl mx-auto py-8 px-4">
+        <Card>
           <CardHeader>
-            <CardTitle>Select Chat</CardTitle>
+            <CardTitle>Memory Test</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Choose a chat to use for memory testing.
-            </p>
-
-            {chats.length === 0 ? (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground mb-4">No chats found</p>
-                <Link href="/chat">
-                  <Button>Start a new chat</Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {chats.map((chat) => (
-                  <div
-                    key={chat.id}
-                    onClick={() => setSelectedChat(chat.id)}
-                    className={`p-3 rounded-md cursor-pointer transition-colors ${
-                      selectedChat === chat.id
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
-                    }`}>
-                    {chat.title}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Memory display and actions */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>User Memory</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-md font-medium">Current Memory State</h3>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={fetchMemory}
-                    disabled={loading}>
-                    {loading ? "Loading..." : "Refresh"}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={clearMemory}
-                    disabled={memoryClearLoading || !memory}>
-                    {memoryClearLoading ? "Clearing..." : "Clear Memory"}
-                  </Button>
-                </div>
-              </div>
-
-              <Separator />
-
-              {lastUpdated && (
-                <p className="text-xs text-muted-foreground">
-                  Last updated: {new Date(lastUpdated).toLocaleString()}
-                </p>
-              )}
-
-              <div className="p-4 bg-muted rounded-md min-h-[150px]">
-                {memory ? (
-                  <p className="whitespace-pre-wrap">{memory}</p>
-                ) : (
-                  <p className="text-muted-foreground text-center">
-                    No memory data found. Start chatting to generate memory.
-                  </p>
-                )}
-              </div>
-
-              <Separator />
-
-              <div>
-                <h3 className="text-md font-medium mb-2">Test Actions</h3>
-                <Button
-                  onClick={forceMemoryTest}
-                  disabled={memoryTestLoading || !selectedChat}>
-                  {memoryTestLoading ? "Adding..." : "Add Test Allergy Memory"}
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  This will add a synthetic allergy test message to the selected
-                  chat and trigger a memory update to show allergy warnings.
-                </p>
-              </div>
-            </div>
+            <p>Please log in to test bot memory.</p>
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="container max-w-4xl mx-auto py-8 px-4">
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Bot Memory Test</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">
+            This page allows you to test the bot's memory system. You can view
+            current memory, force an update, or run tests.
+          </p>
+
+          <div className="flex flex-wrap gap-3 mb-6">
+            <Button onClick={fetchMemory} disabled={loading}>
+              Refresh Memory
+            </Button>
+            <Button onClick={updateMemory} disabled={loading} variant="outline">
+              Force Memory Update
+            </Button>
+            <Button
+              onClick={addTestAllergy}
+              disabled={loading}
+              variant="secondary">
+              Add Test Allergy Info
+            </Button>
+            <Button onClick={fetchChats} disabled={loading} variant="ghost">
+              Refresh Chats
+            </Button>
+            <Button
+              onClick={clearMemory}
+              disabled={loading}
+              variant="destructive">
+              Clear Memory
+            </Button>
+          </div>
+
+          {testResult && (
+            <div className="mb-4 p-3 bg-muted rounded-md">
+              <h3 className="font-medium mb-1">Test Result:</h3>
+              <p>{testResult}</p>
+            </div>
+          )}
+
+          <Separator className="my-4" />
+
+          <h3 className="font-medium mb-2">Current Memory:</h3>
+          {loading ? (
+            <p>Loading...</p>
+          ) : memory ? (
+            <div className="p-3 bg-muted rounded-md whitespace-pre-wrap mb-6">
+              {memory}
+            </div>
+          ) : (
+            <p className="text-muted-foreground mb-6">
+              No memory found for this user.
+            </p>
+          )}
+
+          <Link href="/chat" className="text-primary hover:underline">
+            Go to chat to continue conversations
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>User Chats</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">
+            These are your chats stored in the system. These chats are used to
+            generate memory. Click on a chat to open it.
+          </p>
+
+          {chats.length > 0 ? (
+            <div className="grid gap-4 mb-4">
+              {chats.map((chat) => (
+                <div
+                  key={chat.id}
+                  className={`p-3 border rounded-md cursor-pointer hover:bg-muted transition-colors ${
+                    selectedChat === chat.id ? "bg-muted border-primary" : ""
+                  }`}
+                  onClick={() => setSelectedChat(chat.id)}>
+                  <h4 className="font-medium">{chat.title}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {chat.updatedAt
+                      ? new Date(chat.updatedAt).toLocaleString()
+                      : "Unknown date"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground mb-4">No chats found.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

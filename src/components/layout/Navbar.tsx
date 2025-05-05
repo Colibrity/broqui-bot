@@ -20,6 +20,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isProduction = process.env.NODE_ENV === "production";
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -75,16 +76,18 @@ export default function Navbar() {
                     <History className="h-4 w-4 mr-1 inline-block" />
                     History
                   </Link>
-                  <Link
-                    href="/memory-test"
-                    className={`text-sm ${
-                      pathname === "/memory-test"
-                        ? "text-primary font-medium"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}>
-                    <Brain className="h-4 w-4 mr-1 inline-block" />
-                    Memory Test
-                  </Link>
+                  {!isProduction && (
+                    <Link
+                      href="/memory-test"
+                      className={`text-sm ${
+                        pathname === "/memory-test"
+                          ? "text-primary font-medium"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}>
+                      <Brain className="h-4 w-4 mr-1 inline-block" />
+                      Memory Test
+                    </Link>
+                  )}
                   <Link
                     href="/profile"
                     className={`flex items-center text-sm ${
@@ -189,16 +192,18 @@ export default function Navbar() {
                   <History className="h-4 w-4 mr-2 inline-block" />
                   History
                 </Link>
-                <Link
-                  href="/memory-test"
-                  className={`p-4 border-b ${
-                    pathname === "/memory-test"
-                      ? "text-primary font-medium"
-                      : ""
-                  }`}>
-                  <Brain className="h-4 w-4 mr-2 inline-block" />
-                  Memory Test
-                </Link>
+                {!isProduction && (
+                  <Link
+                    href="/memory-test"
+                    className={`p-4 border-b ${
+                      pathname === "/memory-test"
+                        ? "text-primary font-medium"
+                        : ""
+                    }`}>
+                    <Brain className="h-4 w-4 mr-2 inline-block" />
+                    Memory Test
+                  </Link>
+                )}
                 <Link
                   href="/profile"
                   className={`p-4 border-b ${

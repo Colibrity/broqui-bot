@@ -12,7 +12,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       <header className="border-b py-4">
         <div className="container max-w-5xl flex justify-center">
           <Link href="/" className="text-2xl font-bold">
-            Broqui Food Assistant
+            Broqui
           </Link>
         </div>
       </header>

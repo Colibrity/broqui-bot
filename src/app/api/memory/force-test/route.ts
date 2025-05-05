@@ -1,66 +1,69 @@
 import { NextResponse } from 'next/server';
-import { addDoc, collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { collection, doc, addDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { forceFullMemoryUpdate, getUserMemory } from '@/lib/memoryService';
-import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: Request) {
-  try {
-    const { userId, allergyInfo } = await request.json();
+  // Block in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'This endpoint is not available in production' },
+      { status: 403 }
+    );
+  }
 
-    // Check if user ID is provided
+  try {
+    // Get the userId and optional allergyInfo from the request
+    const { userId, chatId, allergyInfo = "I have severe allergies to peanuts and shellfish. Please remember this important health information." } = await request.json();
+    
+    // Check if we have a userId
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
       );
     }
-
-    // Create a test chat for allergy information
-    const chatId = `test_allergy_${Date.now()}`;
     
-    // Create chat in Firestore
-    await setDoc(doc(db, 'chats', chatId), {
-      userId: userId,
-      title: 'Allergy Test Chat',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+    // Check if we have a chatId
+    if (!chatId) {
+      return NextResponse.json(
+        { error: 'Chat ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    // Create a special test message for allergies
+    const messagesRef = collection(db, 'chats', chatId, 'messages');
+    await addDoc(messagesRef, {
+      role: 'user',
+      content: allergyInfo,
+      timestamp: serverTimestamp(),
+      images: [],
     });
     
-    // Add user message
-    const userMessageId = `user_${uuidv4()}`;
-    const userMessage = {
-      id: userMessageId,
-      role: 'user',
-      content: allergyInfo || 'I have severe allergies to peanuts and shellfish. Please remember this important health information.',
-      timestamp: serverTimestamp()
-    };
-    
-    await setDoc(doc(db, 'chats', chatId, 'messages', userMessageId), userMessage);
-    
-    // Add assistant response
-    const assistantMessageId = `assistant_${uuidv4()}`;
-    const assistantMessage = {
-      id: assistantMessageId,
+    // Add a simulated response as well
+    await addDoc(messagesRef, {
       role: 'assistant',
-      content: "I understand that you have severe allergies to peanuts and shellfish. This is important health information that I will remember. I'll make sure to consider these allergies when discussing food with you.",
-      timestamp: serverTimestamp()
-    };
+      content: "I've made a note of your allergies to peanuts and shellfish. I'll be sure to keep this in mind when discussing food-related topics with you. Is there anything specific you'd like to know about safe food choices for people with these allergies?",
+      timestamp: serverTimestamp(),
+      images: []
+    });
     
-    await setDoc(doc(db, 'chats', chatId, 'messages', assistantMessageId), assistantMessage);
-    
-    // Update user memory
+    // Now force a memory update
     const result = await forceFullMemoryUpdate(userId);
     
     // Get updated memory
     const updatedMemory = await getUserMemory(userId);
     
+    // Get the chat title for reference
+    const chatDoc = await getDoc(doc(db, 'chats', chatId));
+    const chatTitle = chatDoc.exists() ? chatDoc.data().title : 'Unknown chat';
+    
+    // Return success with the updated memory
     return NextResponse.json({
       success: true, 
-      message: 'Test allergy information added and memory updated',
-      memoryResult: result,
+      message: `Test allergy information added and memory updated for chat: ${chatTitle}`,
       memory: updatedMemory?.summary || null,
-      chatId: chatId
     });
     
   } catch (error: any) {

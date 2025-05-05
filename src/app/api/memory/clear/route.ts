@@ -3,6 +3,14 @@ import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export async function POST(request: Request) {
+  // Block in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'This endpoint is not available in production' },
+      { status: 403 }
+    );
+  }
+
   try {
     const { userId } = await request.json();
 
