@@ -236,88 +236,107 @@ export default function MemoryTestPage() {
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Bot Memory Test</CardTitle>
+    <div className="container max-w-4xl mx-auto py-4 px-3 sm:py-8 sm:px-4">
+      <Card className="mb-6 sm:mb-8">
+        <CardHeader className="pb-2 sm:pb-4">
+          <CardTitle className="text-xl sm:text-2xl">Bot Memory Test</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">
+          <p className="mb-3 sm:mb-4 text-sm sm:text-base">
             This page allows you to test the bot's memory system. You can view
             current memory, force an update, or run tests.
           </p>
 
-          <div className="flex flex-wrap gap-3 mb-6">
-            <Button onClick={fetchMemory} disabled={loading}>
+          <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <Button
+              onClick={fetchMemory}
+              disabled={loading}
+              className="w-full sm:w-auto">
               Refresh Memory
             </Button>
-            <Button onClick={updateMemory} disabled={loading} variant="outline">
+            <Button
+              onClick={updateMemory}
+              disabled={loading}
+              variant="outline"
+              className="w-full sm:w-auto">
               Force Memory Update
             </Button>
             <Button
               onClick={addTestAllergy}
               disabled={loading}
-              variant="secondary">
+              variant="secondary"
+              className="w-full sm:w-auto">
               Add Test Allergy Info
             </Button>
-            <Button onClick={fetchChats} disabled={loading} variant="ghost">
+            <Button
+              onClick={fetchChats}
+              disabled={loading}
+              variant="ghost"
+              className="w-full sm:w-auto">
               Refresh Chats
             </Button>
             <Button
               onClick={clearMemory}
               disabled={loading}
-              variant="destructive">
+              variant="destructive"
+              className="w-full sm:w-auto">
               Clear Memory
             </Button>
           </div>
 
           {testResult && (
-            <div className="mb-4 p-3 bg-muted rounded-md">
+            <div className="mb-4 p-2 sm:p-3 bg-muted rounded-md text-sm sm:text-base">
               <h3 className="font-medium mb-1">Test Result:</h3>
               <p>{testResult}</p>
             </div>
           )}
 
-          <Separator className="my-4" />
+          <Separator className="my-3 sm:my-4" />
 
-          <h3 className="font-medium mb-2">Current Memory:</h3>
+          <h3 className="font-medium mb-2 text-sm sm:text-base">
+            Current Memory:
+          </h3>
           {loading ? (
             <p>Loading...</p>
           ) : memory ? (
-            <div className="p-3 bg-muted rounded-md whitespace-pre-wrap mb-6">
+            <div className="p-2 sm:p-3 bg-muted rounded-md whitespace-pre-wrap mb-4 sm:mb-6 text-sm sm:text-base overflow-x-auto">
               {memory}
             </div>
           ) : (
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
               No memory found for this user.
             </p>
           )}
 
-          <Link href="/chat" className="text-primary hover:underline">
+          <Link
+            href="/chat"
+            className="text-primary hover:underline text-sm sm:text-base">
             Go to chat to continue conversations
           </Link>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>User Chats</CardTitle>
+        <CardHeader className="pb-2 sm:pb-4">
+          <CardTitle className="text-xl sm:text-2xl">User Chats</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">
+          <p className="mb-3 sm:mb-4 text-sm sm:text-base">
             These are your chats stored in the system. These chats are used to
             generate memory. Click on a chat to open it.
           </p>
 
           {chats.length > 0 ? (
-            <div className="grid gap-4 mb-4">
+            <div className="grid gap-2 sm:gap-4 mb-4">
               {chats.map((chat) => (
                 <div
                   key={chat.id}
-                  className="p-3 border rounded-md cursor-pointer hover:bg-muted transition-colors"
+                  className="p-2 sm:p-3 border rounded-md cursor-pointer hover:bg-muted transition-colors"
                   onClick={() => navigateToChat(chat.id)}>
-                  <h4 className="font-medium">{chat.title}</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <h4 className="font-medium text-sm sm:text-base">
+                    {chat.title}
+                  </h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {chat.updatedAt
                       ? new Date(chat.updatedAt).toLocaleString()
                       : "Unknown date"}
@@ -326,7 +345,9 @@ export default function MemoryTestPage() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground mb-4">No chats found.</p>
+            <p className="text-muted-foreground mb-4 text-sm sm:text-base">
+              No chats found.
+            </p>
           )}
         </CardContent>
       </Card>

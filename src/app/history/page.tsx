@@ -171,20 +171,20 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="container max-w-4xl mx-auto py-8 px-4 flex items-center justify-center">
+      <div className="container max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Loading chat history...</p>
+          <div className="animate-spin h-6 w-6 sm:h-8 sm:w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3 sm:mb-4"></div>
+          <p className="text-sm sm:text-base">Loading chat history...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Chat History</h1>
-        <div className="flex gap-2">
+    <div className="container max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">Chat History</h1>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {chats.length > 0 && (
             <AlertDialog
               open={isConfirmingClearAll}
@@ -192,12 +192,12 @@ export default function HistoryPage() {
               <AlertDialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="text-destructive border-destructive hover:bg-destructive/10">
+                  className="text-destructive border-destructive hover:bg-destructive/10 w-full sm:w-auto">
                   <TrashIcon className="mr-2 h-4 w-4" />
                   Clear History
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Clear All Chat History</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -205,8 +205,10 @@ export default function HistoryPage() {
                     This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+                  <AlertDialogCancel className="mt-0 sm:mt-2">
+                    Cancel
+                  </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleClearAllChats}
                     className="bg-destructive hover:bg-destructive/90">
@@ -216,8 +218,8 @@ export default function HistoryPage() {
               </AlertDialogContent>
             </AlertDialog>
           )}
-          <Link href="/chat">
-            <Button variant="default">
+          <Link href="/chat" className="w-full sm:w-auto">
+            <Button variant="default" className="w-full sm:w-auto">
               <ChatBubbleIcon className="mr-2 h-4 w-4" />
               New Chat
             </Button>
@@ -226,8 +228,8 @@ export default function HistoryPage() {
       </div>
 
       {chats.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">
+        <div className="text-center py-6 sm:py-12">
+          <p className="text-muted-foreground mb-4 text-sm sm:text-base">
             No conversations found. Start a new chat to see your history here.
           </p>
           <Link href="/chat">
@@ -235,18 +237,18 @@ export default function HistoryPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {chats.map((chat) => (
             <Card key={chat.id} className="transition-all hover:shadow-md">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
+              <CardHeader className="pb-2 px-3 sm:px-6">
+                <div className="flex flex-wrap sm:flex-nowrap items-start sm:items-center justify-between gap-2">
                   {editingTitle === chat.id ? (
                     <div className="flex items-center gap-2 w-full">
                       <Input
                         value={newTitle}
                         onChange={(e) => setNewTitle(e.target.value)}
                         placeholder="Enter chat title"
-                        className="flex-1"
+                        className="flex-1 h-8 sm:h-10"
                         autoFocus
                       />
                       <Button
@@ -266,7 +268,9 @@ export default function HistoryPage() {
                     </div>
                   ) : (
                     <>
-                      <CardTitle className="flex-1">{chat.title}</CardTitle>
+                      <CardTitle className="flex-1 text-base sm:text-lg break-words pr-2">
+                        {chat.title}
+                      </CardTitle>
                       <div className="flex space-x-1">
                         <Button
                           size="icon"
@@ -291,7 +295,7 @@ export default function HistoryPage() {
                               <TrashIcon className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Chat</AlertDialogTitle>
                               <AlertDialogDescription>
@@ -299,8 +303,10 @@ export default function HistoryPage() {
                                 action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+                              <AlertDialogCancel className="mt-0 sm:mt-2">
+                                Cancel
+                              </AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDeleteChat(chat.id)}
                                 className="bg-destructive hover:bg-destructive/90">
@@ -313,7 +319,7 @@ export default function HistoryPage() {
                     </>
                   )}
                 </div>
-                <CardDescription className="flex items-center gap-1 mt-1">
+                <CardDescription className="flex flex-wrap items-center gap-1 mt-1 text-xs sm:text-sm">
                   <CalendarIcon className="h-3 w-3" />
                   <span>{formatDate(chat.updatedAt)}</span>
                   <span className="mx-1">•</span>
@@ -321,10 +327,10 @@ export default function HistoryPage() {
                   <span>{formatTime(chat.updatedAt)}</span>
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 pt-1 pb-3 sm:px-6 sm:pt-2 sm:pb-4">
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full py-1 sm:py-2 h-auto min-h-9"
                   onClick={() => openChat(chat.id)}>
                   Continue Conversation
                 </Button>
