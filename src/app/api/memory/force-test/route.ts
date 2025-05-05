@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   try {
     const { userId, allergyInfo } = await request.json();
 
-    // Проверяем наличие ID пользователя
+    // Check if user ID is provided
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID is required' },
@@ -16,10 +16,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Создаем тестовый чат для сообщения об аллергии
+    // Create a test chat for allergy information
     const chatId = `test_allergy_${Date.now()}`;
     
-    // Создаем чат в Firestore
+    // Create chat in Firestore
     await setDoc(doc(db, 'chats', chatId), {
       userId: userId,
       title: 'Allergy Test Chat',
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       updatedAt: serverTimestamp()
     });
     
-    // Добавляем сообщение пользователя
+    // Add user message
     const userMessageId = `user_${uuidv4()}`;
     const userMessage = {
       id: userMessageId,
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     
     await setDoc(doc(db, 'chats', chatId, 'messages', userMessageId), userMessage);
     
-    // Добавляем ответ ассистента
+    // Add assistant response
     const assistantMessageId = `assistant_${uuidv4()}`;
     const assistantMessage = {
       id: assistantMessageId,
@@ -49,10 +49,10 @@ export async function POST(request: Request) {
     
     await setDoc(doc(db, 'chats', chatId, 'messages', assistantMessageId), assistantMessage);
     
-    // Обновляем память пользователя
+    // Update user memory
     const result = await forceFullMemoryUpdate(userId);
     
-    // Получаем обновленную память
+    // Get updated memory
     const updatedMemory = await getUserMemory(userId);
     
     return NextResponse.json({

@@ -98,16 +98,16 @@ export function useAuth() {
     try {
       console.log("updateProfile: Calling Firebase updateProfile");
       
-      // Обновляем профиль в Firebase
+      // Update profile in Firebase
       await firebaseUpdateProfile(user, { 
         displayName: displayName 
       });
       
       console.log("updateProfile: Firebase update successful");
       
-      // Обновляем локальное состояние пользователя
-      // В некоторых случаях Firebase не обновляет локальный объект пользователя немедленно
-      // поэтому мы делаем это вручную для немедленного отображения обновлений в UI
+      // Update local user state
+      // In some cases Firebase doesn't update the local user object immediately
+      // so we do this manually to immediately display the updates in the UI
       setUser(prevUser => {
         if (!prevUser) return null;
         return { ...prevUser, displayName };

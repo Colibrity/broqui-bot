@@ -17,11 +17,11 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import { db, storage } from './firebase';
 import { ChatMessage, MessageImage } from './gpt';
 
-// Функция для получения заголовка чата из первого сообщения
+// Function to get chat title from the first message
 export function getChatTitleFromFirstMessage(message: string): string {
   if (!message) return "New questions";
   
-  // Обрезаем до 30 символов, если сообщение длиннее
+  // Trim to 30 characters if the message is longer
   const titleText = message.trim();
   if (titleText.length <= 30) return titleText;
   

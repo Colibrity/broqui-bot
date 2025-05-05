@@ -23,7 +23,7 @@ import {
   getChatTitleFromFirstMessage,
 } from "@/lib/chatService";
 
-// Тип для выбранного изображения
+// Type for selected image
 interface SelectedImage {
   id: string;
   file: File;
@@ -47,7 +47,7 @@ export default function ChatPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
 
-  // Загрузка чата по ID
+  // Loading chat by ID
   useEffect(() => {
     async function loadChat() {
       if (chatId) {
@@ -105,7 +105,7 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Функция для создания нового чата
+  // Function to create a new chat
   const createNewChat = async () => {
     // If there are messages, save the current chat before creating a new one
     if (messages.length > 0) {
@@ -120,7 +120,7 @@ export default function ChatPage() {
     router.push("/chat");
   };
 
-  // Функция для сохранения текущего чата
+  // Function to save the current chat
   const saveCurrentChat = async () => {
     if (messages.length === 0) return;
 
@@ -375,7 +375,7 @@ export default function ChatPage() {
     fileInputRef.current?.click();
   };
 
-  // Функция для обработки изменения файла
+  // Function to handle file changes
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
 
@@ -384,13 +384,13 @@ export default function ChatPage() {
 
     // Process each file
     selectedFiles.forEach((file) => {
-      // Проверка типа файла (только изображения)
+      // Check file type (only images)
       if (!file.type.startsWith("image/")) {
         console.error("Only image files are allowed");
         return;
       }
 
-      // Проверка размера файла (максимум 5MB)
+      // Check file size (maximum 5MB)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         console.error("File is too large. Maximum size is 5MB");
@@ -416,19 +416,19 @@ export default function ChatPage() {
       reader.readAsDataURL(file);
     });
 
-    // Сбрасываем значение input, чтобы можно было загрузить тот же файл повторно
+    // Reset input value to allow uploading the same file again
     e.target.value = "";
   };
 
-  // Удаление выбранного изображения
+  // Remove selected image
   const removeSelectedImage = (id: string) => {
     setSelectedImages((prev) => {
-      // Просто возвращаем массив без удаленного изображения
+      // Just return the array without the removed image
       return prev.filter((img) => img.id !== id);
     });
   };
 
-  // Функция для отображения содержимого сообщения
+  // Function to display message content
   const renderMessageContent = (message: ChatMessage) => {
     // Handle text content
     const formattedText = message.content
@@ -552,7 +552,7 @@ export default function ChatPage() {
 
       {/* Input Area */}
       <div className="border-t bg-background p-4">
-        {/* Предпросмотр выбранных изображений */}
+        {/* Preview of selected images */}
         {selectedImages.length > 0 && (
           <div className="max-w-3xl mx-auto mb-2 flex flex-wrap gap-2">
             {selectedImages.map((image) => (

@@ -4,7 +4,7 @@ import { storage } from '@/lib/firebase';
 
 export async function POST(request: Request) {
   try {
-    // Получаем данные из запроса в формате JSON
+    // Get data from request in JSON format
     const body = await request.json();
     const { imageData, chatId } = body;
 
@@ -12,24 +12,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing image data or chatId' }, { status: 400 });
     }
 
-    // Проверяем, что imageData - это base64 строка
+    // Check that imageData is a base64 string
     if (!imageData.startsWith('data:')) {
       return NextResponse.json({ error: 'Invalid image data format' }, { status: 400 });
     }
 
-    // Создаём путь в Firebase Storage
+    // Create path in Firebase Storage
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(2, 9);
     const imagePath = `chats/${chatId}/images/${timestamp}-${randomId}`;
     
-    // Загружаем в Firebase Storage напрямую как data URL
+    // Upload to Firebase Storage directly as data URL
     const imageRef = ref(storage, imagePath);
     await uploadString(imageRef, imageData, 'data_url');
     
-    // Получаем URL загруженного изображения
+    // Get URL of the uploaded image
     const downloadUrl = await getDownloadURL(imageRef);
 
-    // Возвращаем URL и путь для сохранения в сообщении
+    // Return URL and path for saving in the message
     return NextResponse.json({
       url: downloadUrl,
       storagePath: imagePath,

@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   try {
     const { userId } = await request.json();
 
-    // Проверяем наличие ID пользователя
+    // Check if user ID is provided
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID is required' },
@@ -14,19 +14,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Проверяем, существует ли память для этого пользователя
+    // Check if memory exists for this user
     const memoryRef = doc(db, 'userMemories', userId);
     const memoryDoc = await getDoc(memoryRef);
     
     if (!memoryDoc.exists()) {
-      // Если памяти нет, сообщаем что очищать нечего
+      // If no memory exists, inform that there is nothing to clear
       return NextResponse.json({
         success: true,
         message: 'No memory found for this user'
       });
     }
     
-    // Удаляем документ памяти
+    // Delete the memory document
     await deleteDoc(memoryRef);
     
     return NextResponse.json({

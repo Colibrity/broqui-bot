@@ -4,7 +4,7 @@ import { db } from '@/lib/firebase';
 
 export async function GET(request: Request) {
   try {
-    // Получаем userId из параметров запроса
+    // Get userId from request parameters
     const url = new URL(request.url);
     const userId = url.searchParams.get('userId');
     
@@ -34,11 +34,11 @@ export async function GET(request: Request) {
       };
     });
     
-    // Сортируем чаты на стороне клиента
+    // Sort chats on the client side
     const sortedChats = [...chats].sort((a, b) => {
       const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
       const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-      return dateB - dateA; // Сортировка по убыванию (новые сначала)
+      return dateB - dateA; // Sort in descending order (newest first)
     });
     
     return NextResponse.json({

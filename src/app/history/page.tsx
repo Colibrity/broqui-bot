@@ -52,7 +52,7 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
 
-  // Загрузка чатов пользователя
+  // Loading user chats
   useEffect(() => {
     async function loadChats() {
       if (authLoading) return;
@@ -78,13 +78,13 @@ export default function HistoryPage() {
     loadChats();
   }, [user, authLoading]);
 
-  // Начать редактирование названия
+  // Start editing title
   const startEditing = (chatId: string, currentTitle: string) => {
     setEditingTitle(chatId);
     setNewTitle(currentTitle);
   };
 
-  // Сохранить новое название
+  // Save new title
   const saveTitle = async (chatId: string) => {
     if (!newTitle.trim()) {
       setNewTitle("Untitled Chat");
@@ -111,13 +111,13 @@ export default function HistoryPage() {
     setEditingTitle(null);
   };
 
-  // Отменить редактирование
+  // Cancel editing
   const cancelEditing = () => {
     setEditingTitle(null);
     setNewTitle("");
   };
 
-  // Удалить чат
+  // Delete chat
   const handleDeleteChat = async (chatId: string) => {
     // Remove from local state
     setChats((prev) => prev.filter((chat) => chat.id !== chatId));
@@ -134,18 +134,18 @@ export default function HistoryPage() {
     setDeletingChatId(null);
   };
 
-  // Открыть чат для продолжения беседы
+  // Open chat to continue conversation
   const openChat = (chatId: string) => {
     router.push(`/chat?id=${chatId}`);
   };
 
-  // Форматирование даты
+  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, "PPP"); // 'April 29, 2023'
   };
 
-  // Форматирование времени
+  // Format time
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, "p"); // '12:00 AM'

@@ -4,7 +4,7 @@ import { storage } from '@/lib/firebase';
 
 export async function POST(request: Request) {
   try {
-    // Получаем данные из запроса
+    // Get data from request
     const formData = await request.formData();
     const image = formData.get('image') as File;
     const chatId = formData.get('chatId') as string;
@@ -13,23 +13,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing image or chatId' }, { status: 400 });
     }
 
-    // Создаём путь в Firebase Storage
+    // Create path in Firebase Storage
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(2, 9);
     const imagePath = `chats/${chatId}/images/${timestamp}-${randomId}`;
 
-    // Преобразуем файл в ArrayBuffer
+    // Convert file to ArrayBuffer
     const bytes = await image.arrayBuffer();
     const buffer = new Uint8Array(bytes);
 
-    // Загружаем в Firebase Storage через сервер
+    // Upload to Firebase Storage through server
     const imageRef = ref(storage, imagePath);
     await uploadBytes(imageRef, buffer);
     
-    // Получаем URL загруженного изображения
+    // Get URL of the uploaded image
     const downloadUrl = await getDownloadURL(imageRef);
 
-    // Возвращаем URL и путь для сохранения в сообщении
+    // Return URL and path for saving in the message
     return NextResponse.json({
       url: downloadUrl,
       storagePath: imagePath,

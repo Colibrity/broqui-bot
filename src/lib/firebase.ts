@@ -27,7 +27,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Проверка конфигурации Firebase
+// Checking Firebase configuration
 if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
   console.warn('Firebase configuration is missing or incomplete. Make sure your .env.local file is set up correctly.');
 }

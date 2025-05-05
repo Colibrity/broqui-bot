@@ -57,19 +57,19 @@ export default function MemoryTestPage() {
         setChats(data.chats || []);
         if (data.chats?.length === 0) {
           toast.info(
-            "Чаты не найдены. Это может быть нормально, если вы еще не общались с ботом или если память была создана через принудительное обновление."
+            "No chats found. This may be normal if you haven't chatted with the bot yet or if memory was created through a forced update."
           );
         }
       } else {
         console.error("Failed to fetch chats:", data.error);
-        toast.error(`Ошибка получения чатов: ${data.error}`);
-        setTestResult(`Ошибка получения чатов: ${data.error}`);
+        toast.error(`Error fetching chats: ${data.error}`);
+        setTestResult(`Error fetching chats: ${data.error}`);
       }
     } catch (error: any) {
       console.error("Error fetching chats:", error);
-      toast.error(`Ошибка: ${error.message || "Неизвестная ошибка"}`);
+      toast.error(`Error: ${error.message || "Unknown error"}`);
       setTestResult(
-        `Ошибка получения чатов: ${error.message || "Неизвестная ошибка"}`
+        `Error fetching chats: ${error.message || "Unknown error"}`
       );
     } finally {
       setLoading(false);
@@ -159,7 +159,7 @@ export default function MemoryTestPage() {
 
     setLoading(true);
     try {
-      // Используем специальный API для создания тестового сообщения и обновления памяти
+      // We use a special API to create a test message and update memory
       const response = await fetch("/api/memory/force-test", {
         method: "POST",
         headers: {
@@ -178,7 +178,7 @@ export default function MemoryTestPage() {
 
       const data = await response.json();
 
-      // Обновляем память на странице
+      // Update memory on the page
       if (data.success) {
         setMemory(data.memory);
         setTestResult(
@@ -186,7 +186,7 @@ export default function MemoryTestPage() {
         );
         toast.success("Test completed successfully");
 
-        // Обновляем список чатов
+        // Update chat list
         await fetchChats();
       } else {
         setTestResult(`Test failed: ${data.error || "Unknown error"}`);
@@ -220,17 +220,17 @@ export default function MemoryTestPage() {
 
       if (data.success) {
         setMemory(null);
-        setTestResult(`Память очищена: ${data.message}`);
-        toast.success("Память пользователя успешно очищена");
+        setTestResult(`Memory cleared: ${data.message}`);
+        toast.success("User memory successfully cleared");
       } else {
         setTestResult(
-          `Ошибка очистки памяти: ${data.error || "Неизвестная ошибка"}`
+          `Error clearing memory: ${data.error || "Unknown error"}`
         );
-        toast.error(data.error || "Ошибка очистки памяти");
+        toast.error(data.error || "Error clearing memory");
       }
     } catch (error: any) {
       console.error("Error clearing memory:", error);
-      toast.error("Ошибка очистки памяти");
+      toast.error("Error clearing memory");
     } finally {
       setLoading(false);
     }

@@ -31,7 +31,7 @@ When responding to food images, analyze them for:
 6. Healthier alternatives or improvements if applicable
 `;
 
-// Тип для изображения в сообщении
+// Type for image in message
 export type MessageImage = {
   url: string;
   alt?: string;

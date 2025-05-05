@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
       );
     }
     
-    // Получаем userId из параметров запроса
+    // Get userId from request parameters
     const url = new URL(request.url);
     const userId = url.searchParams.get('userId');
     
@@ -51,7 +51,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
     // Get messages for this chat
     const messagesQuery = query(
       collection(db, 'chats', chatId, 'messages')
-      // Временно удаляем сортировку, которая может требовать индекс
+      // Temporarily removing sorting that might require an index
       // orderBy('timestamp', 'asc')
     );
     
@@ -68,11 +68,11 @@ export async function GET(request: Request, { params }: { params: Params }) {
       };
     });
     
-    // Сортируем сообщения по времени на стороне клиента
+    // Sort messages by timestamp on the client side
     const sortedMessages = [...messages].sort((a, b) => {
       const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
       const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-      return dateA - dateB; // Сортировка по возрастанию (старые сначала)
+      return dateA - dateB; // Sort in ascending order (oldest first)
     });
     
     // Format the chat data

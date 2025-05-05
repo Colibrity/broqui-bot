@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       const userMemory = await getUserMemory(userId);
       
       if (userMemory?.summary) {
-        // Проверяем, содержит ли память информацию об аллергии
+        // Check if memory contains allergy information
         const allergyInfo = userMemory.summary.includes('allerg') 
           ? `\n\n⚠️ IMPORTANT HEALTH INFORMATION ⚠️\n${userMemory.summary}`
           : `\n\nUSER MEMORY:\n${userMemory.summary}`;
