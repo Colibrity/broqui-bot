@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Chat message type
 interface ChatMessage {
@@ -33,8 +34,7 @@ export default function MemoryTestPage() {
   const [loading, setLoading] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
-  const [selectedChat, setSelectedChat] = useState<string | null>(null);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const router = useRouter();
 
   // Fetch current memory and chats on page load
   useEffect(() => {
@@ -76,25 +76,9 @@ export default function MemoryTestPage() {
     }
   };
 
-  // Fetch chat messages
-  const fetchChatMessages = async (chatId: string) => {
-    if (!user) return;
-
-    try {
-      const response = await fetch(`/api/chats/${chatId}?userId=${user.uid}`);
-      const data = await response.json();
-
-      if (data.success && data.chat?.messages) {
-        setChatMessages(data.chat.messages);
-        setSelectedChat(chatId);
-      } else {
-        setChatMessages([]);
-        console.error("Failed to fetch chat messages:", data.error);
-      }
-    } catch (error) {
-      console.error("Error fetching chat messages:", error);
-      setChatMessages([]);
-    }
+  // Navigate to chat page
+  const navigateToChat = (chatId: string) => {
+    router.push(`/chat?id=${chatId}`);
   };
 
   // Fetch current memory
@@ -322,7 +306,7 @@ export default function MemoryTestPage() {
         <CardContent>
           <p className="mb-4">
             These are your chats stored in the system. These chats are used to
-            generate memory.
+            generate memory. Click on a chat to open it.
           </p>
 
           {chats.length > 0 ? (
@@ -330,10 +314,8 @@ export default function MemoryTestPage() {
               {chats.map((chat) => (
                 <div
                   key={chat.id}
-                  className={`p-3 border rounded-md cursor-pointer hover:bg-muted ${
-                    selectedChat === chat.id ? "bg-muted" : ""
-                  }`}
-                  onClick={() => fetchChatMessages(chat.id)}>
+                  className="p-3 border rounded-md cursor-pointer hover:bg-muted transition-colors"
+                  onClick={() => navigateToChat(chat.id)}>
                   <h4 className="font-medium">{chat.title}</h4>
                   <p className="text-sm text-muted-foreground">
                     {chat.updatedAt
@@ -345,36 +327,6 @@ export default function MemoryTestPage() {
             </div>
           ) : (
             <p className="text-muted-foreground mb-4">No chats found.</p>
-          )}
-
-          {selectedChat && (
-            <>
-              <Separator className="my-4" />
-              <h3 className="font-medium mb-2">Chat Messages:</h3>
-
-              {chatMessages.length > 0 ? (
-                <div className="space-y-3">
-                  {chatMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`p-3 rounded-md ${
-                        message.role === "user" ? "bg-muted" : "bg-primary/10"
-                      }`}>
-                      <div className="text-xs font-medium mb-1">
-                        {message.role.toUpperCase()}
-                      </div>
-                      <div className="whitespace-pre-wrap">
-                        {message.content}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  No messages in this chat.
-                </p>
-              )}
-            </>
           )}
         </CardContent>
       </Card>

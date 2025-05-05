@@ -5,7 +5,8 @@ import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 export async function POST(request: Request) {
   try {
-    const { userId, image, prompt, chatId } = await request.json();
+    const { userId, image, prompt, textPrompt, chatId } = await request.json();
+    const userPrompt = textPrompt || prompt;
 
     // Validate request data
     if (!image) {
@@ -46,17 +47,24 @@ export async function POST(request: Request) {
       {
         role: 'user',
         content: [
-          { type: 'text', text: prompt || 'What can you tell me about this food?' },
-          { type: 'image_url', image_url: { url: image } }
+          { type: 'text', text: userPrompt || 'What can you tell me about this food?' },
+          { 
+            type: 'image_url', 
+            image_url: { 
+              url: image,
+              detail: "high" 
+            } 
+          }
         ]
       }
     ];
 
     // Create stream from OpenAI API
     const response = await openai.chat.completions.create({
-      model: 'gpt-4-vision-preview',
+      model: 'gpt-4o',
       messages: messages,
-      max_tokens: 500,
+      max_tokens: 800,
+      temperature: 0.7,
       stream: true,
     });
 

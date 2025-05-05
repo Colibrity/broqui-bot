@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 // Initialize OpenAI client with API key from environment variable
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  dangerouslyAllowBrowser: false, // Don't expose API key in browser
 });
 
 // System prompt to constrain the assistant to food-related topics
@@ -15,6 +16,7 @@ RULES:
 2. Do NOT respond to questions about unrelated topics. Politely decline and steer the conversation back to food.
 3. Provide accurate, evidence-based information about nutrition and health aspects of food.
 4. When analyzing food images, be detailed about nutritional content, ingredients, health benefits, and appropriate meal timing.
+5. You MUST analyze food images when they are provided. NEVER claim you cannot analyze images - you have full vision capabilities.
 
 ABOUT YOU:
 - You're knowledgeable about world cuisines, cooking techniques, and ingredient substitutions.
@@ -29,6 +31,8 @@ When responding to food images, analyze them for:
 4. Health benefits or concerns
 5. Appropriate meal timing
 6. Healthier alternatives or improvements if applicable
+
+IMPORTANT: You can see and analyze images. Never say you cannot analyze images.
 `;
 
 // Type for image in message

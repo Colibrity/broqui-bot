@@ -267,4 +267,29 @@ export async function addMessageToChat(chatId: string, message: ChatMessage): Pr
     console.error('Error adding message to chat:', error);
     throw new Error('Failed to add message to chat');
   }
+}
+
+// Delete all chats for a user
+export async function deleteAllUserChats(userId: string): Promise<void> {
+  try {
+    // Get all the user's chats
+    const chatsQuery = query(
+      collection(db, 'chats'),
+      where('userId', '==', userId)
+    );
+    
+    const querySnapshot = await getDocs(chatsQuery);
+    
+    // Delete each chat
+    const deletePromises = querySnapshot.docs.map(async (chatDoc) => {
+      await deleteChat(chatDoc.id);
+    });
+    
+    await Promise.all(deletePromises);
+    
+    console.log(`Deleted all chats for user: ${userId}`);
+  } catch (error) {
+    console.error('Error deleting all user chats:', error);
+    throw new Error('Failed to delete all chats');
+  }
 } 

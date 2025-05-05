@@ -38,6 +38,7 @@ import {
   getUserChats,
   updateChatTitle,
   deleteChat,
+  deleteAllUserChats,
   Chat,
 } from "@/lib/chatService";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +52,7 @@ export default function HistoryPage() {
   const [newTitle, setNewTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
+  const [isConfirmingClearAll, setIsConfirmingClearAll] = useState(false);
 
   // Loading user chats
   useEffect(() => {
@@ -151,6 +153,22 @@ export default function HistoryPage() {
     return format(date, "p"); // '12:00 AM'
   };
 
+  // Delete all chats
+  const handleClearAllChats = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      await deleteAllUserChats(user.uid);
+      setChats([]);
+      setIsConfirmingClearAll(false);
+    } catch (error) {
+      console.error("Error clearing chat history:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container max-w-4xl mx-auto py-8 px-4 flex items-center justify-center">
@@ -166,12 +184,45 @@ export default function HistoryPage() {
     <div className="container max-w-4xl mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Chat History</h1>
-        <Link href="/chat">
-          <Button variant="default">
-            <ChatBubbleIcon className="mr-2 h-4 w-4" />
-            New Chat
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          {chats.length > 0 && (
+            <AlertDialog
+              open={isConfirmingClearAll}
+              onOpenChange={setIsConfirmingClearAll}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="text-destructive border-destructive hover:bg-destructive/10">
+                  <TrashIcon className="mr-2 h-4 w-4" />
+                  Clear History
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear All Chat History</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete all of your chat history?
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClearAllChats}
+                    className="bg-destructive hover:bg-destructive/90">
+                    Clear All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          <Link href="/chat">
+            <Button variant="default">
+              <ChatBubbleIcon className="mr-2 h-4 w-4" />
+              New Chat
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {chats.length === 0 ? (

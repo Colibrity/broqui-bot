@@ -227,9 +227,10 @@ export default function ChatPage() {
             },
             body: JSON.stringify({
               image: messageImages[0].url,
-              textPrompt: messageContent,
-              messages: messages,
+              textPrompt:
+                messageContent || "What can you tell me about this food?",
               userId: user?.uid,
+              chatId: actualChatId,
             }),
           });
 
@@ -237,23 +238,82 @@ export default function ChatPage() {
             throw new Error("Failed to analyze image");
           }
 
-          const data = await response.json();
-
-          // Create AI response message with unique ID
+          // Create assistant message for streaming with unique ID
           const assistantMessageId = `assistant_${Date.now()}`;
           const assistantMessage: ChatMessage = {
             id: assistantMessageId,
             role: "assistant",
-            content: data.content,
+            content: "",
             timestamp: new Date().toISOString(),
           };
 
-          // Add assistant response to UI
+          // Add empty assistant message that will be updated with streamed content
           setMessages((prev) => [...prev, assistantMessage]);
 
-          // Save to Firestore if authenticated
-          if (actualChatId && user) {
-            await addMessageToChat(actualChatId, assistantMessage);
+          // Read the stream
+          const reader = response.body?.getReader();
+          if (!reader) throw new Error("Response body is null");
+
+          const decoder = new TextDecoder("utf-8");
+          let accumulatedContent = "";
+
+          // Stream the response
+          let keepReading = true;
+          while (keepReading) {
+            const { done, value } = await reader.read();
+
+            if (done) {
+              keepReading = false;
+              break;
+            }
+
+            try {
+              const chunkText = decoder.decode(value, { stream: true });
+              accumulatedContent += chunkText;
+
+              // Update UI with new content
+              setMessages((prevMessages) => {
+                const lastIndex = prevMessages.length - 1;
+                const updatedMessages = [...prevMessages];
+                updatedMessages[lastIndex] = {
+                  ...updatedMessages[lastIndex],
+                  content: accumulatedContent,
+                };
+                return updatedMessages;
+              });
+            } catch (error) {
+              console.error("Error decoding chunk:", error);
+            }
+          }
+
+          // Final decode to flush the decoder
+          try {
+            const finalText = decoder.decode();
+            if (finalText) {
+              accumulatedContent += finalText;
+              setMessages((prevMessages) => {
+                const lastIndex = prevMessages.length - 1;
+                const updatedMessages = [...prevMessages];
+                updatedMessages[lastIndex] = {
+                  ...updatedMessages[lastIndex],
+                  content: accumulatedContent,
+                };
+                return updatedMessages;
+              });
+            }
+          } catch (error) {
+            console.error("Error in final decode:", error);
+          }
+
+          // Save complete assistant response to Firestore
+          if (actualChatId && user && accumulatedContent.trim()) {
+            const completeAssistantMessage: ChatMessage = {
+              id: assistantMessageId,
+              role: "assistant",
+              content: accumulatedContent,
+              timestamp: new Date().toISOString(),
+            };
+            await addMessageToChat(actualChatId, completeAssistantMessage);
           }
         } catch (error) {
           console.error("Error analyzing image:", error);
@@ -314,19 +374,42 @@ export default function ChatPage() {
               break;
             }
 
-            const chunkText = decoder.decode(value);
-            accumulatedContent += chunkText;
+            try {
+              const chunkText = decoder.decode(value, { stream: true });
+              accumulatedContent += chunkText;
 
-            // Update UI with new content
-            setMessages((prevMessages) => {
-              const lastIndex = prevMessages.length - 1;
-              const updatedMessages = [...prevMessages];
-              updatedMessages[lastIndex] = {
-                ...updatedMessages[lastIndex],
-                content: accumulatedContent,
-              };
-              return updatedMessages;
-            });
+              // Update UI with new content
+              setMessages((prevMessages) => {
+                const lastIndex = prevMessages.length - 1;
+                const updatedMessages = [...prevMessages];
+                updatedMessages[lastIndex] = {
+                  ...updatedMessages[lastIndex],
+                  content: accumulatedContent,
+                };
+                return updatedMessages;
+              });
+            } catch (error) {
+              console.error("Error decoding chunk:", error);
+            }
+          }
+
+          // Final decode to flush the decoder
+          try {
+            const finalText = decoder.decode();
+            if (finalText) {
+              accumulatedContent += finalText;
+              setMessages((prevMessages) => {
+                const lastIndex = prevMessages.length - 1;
+                const updatedMessages = [...prevMessages];
+                updatedMessages[lastIndex] = {
+                  ...updatedMessages[lastIndex],
+                  content: accumulatedContent,
+                };
+                return updatedMessages;
+              });
+            }
+          } catch (error) {
+            console.error("Error in final decode:", error);
           }
 
           // Save complete assistant response to Firestore
